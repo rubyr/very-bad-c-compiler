@@ -25,6 +25,16 @@ pub struct Token {
     pub substring: String,
 }
 
+impl Token {
+    pub fn to_string(&self) -> String {
+        match self.token_type {
+            Identifier => format!("identifier \"{}\"", self.substring),
+            Constant => format!("constant \"{}\"", self.substring),
+            _ => self.substring.clone(),
+        }
+    }
+}
+
 use TokenType::*;
 
 pub type Tokens = VecDeque<Token>;
@@ -35,7 +45,7 @@ pub fn lex(src: String) -> Tokens {
     macro_rules! rgx {
         ($s: expr) => {
             Regex::new($s).expect(&format!("failed to create regex \"{}\"", $s))
-        }
+        };
     }
 
     let line_comments = rgx!(r"\/\/.*");
@@ -69,7 +79,6 @@ pub fn lex(src: String) -> Tokens {
             if let Some(m) = m.find(&src[pos..]) {
                 found = true;
                 let match_end = m.end() + pos;
-                dbg!(match_end);
 
                 pos = whitespace
                     .find(&src[match_end..])
@@ -78,7 +87,7 @@ pub fn lex(src: String) -> Tokens {
 
                 let lines = src[..pos].lines();
                 let line = lines.clone().count();
-                dbg!(pos, &lines.clone().collect::<Vec<_>>());
+                // dbg!(pos, &lines.clone().collect::<Vec<_>>());
                 let index = lines.last().map(|s| s.len()).unwrap_or(0);
 
                 tokens.push_back(Token {
@@ -93,10 +102,15 @@ pub fn lex(src: String) -> Tokens {
         }
 
         if !found {
-            // throw error
+            // TODO: throw error
             // break 'src;
 
-            panic!("error while lexing: {:?}\nsrc: {:?}\npos: {:?}", tokens, &src[pos..], pos);
+            panic!(
+                "error while lexing: {:?}\nsrc: {:?}\npos: {:?}",
+                tokens,
+                &src[pos..],
+                pos
+            );
         }
     }
 
@@ -110,7 +124,9 @@ mod test {
     #[allow(unused_imports)]
     use super::{lex, Token, TokenType::*};
 
-    #[allow(dead_code)] // this is just a helper fn
+    /// returns a sample string of tokens that parses to a valid C program
+    /// which just returns a constant
+    #[allow(dead_code)]
     fn ret_n(n: i32) -> VecDeque<super::Token> {
         VecDeque::from(vec![
             Token {
@@ -176,8 +192,17 @@ mod test {
         ])
     }
 
+    /// helper function that ignores line numbers and indexes
+    /// because sometimes you don't wanna test that
+    #[allow(dead_code)]
     fn ignore_lines(t: Tokens) -> Tokens {
-        t.iter().map(|t| Token { line: 0, index: 0, ..t.clone() }).collect()
+        t.iter()
+            .map(|t| Token {
+                line: 0,
+                index: 0,
+                ..t.clone()
+            })
+            .collect()
     }
 
     #[test]
