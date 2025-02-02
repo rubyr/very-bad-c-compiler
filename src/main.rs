@@ -1,8 +1,15 @@
-mod lexer;
+// TODO: remove this once things are starting to become more in place
+#![allow(dead_code)]
 
-use lexer::lex;
-use std::{fs, path::PathBuf};
+mod error;
+mod lexer;
+mod parser;
+
 use clap::Parser;
+use error::{len_errors, ERRORS};
+use lexer::lex;
+use parser::parse_program;
+use std::{fs, path::PathBuf};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -22,7 +29,10 @@ struct Args {
     asm_only: bool,
 }
 
-fn main() {
+// ideally i think we'd eventually want to implement Display on errors and then
+// return a `Result<(), ErrorList>` or something? but for now we're just
+// returning nothing because we're LAZY
+fn main() -> Result<(), ()> {
     let args = Args::parse();
     let file_path = PathBuf::from(args.file);
 
@@ -37,5 +47,27 @@ fn main() {
         )
     });
 
-    dbg!(lex(src));
+    let mut lexed = lex(src);
+
+    if len_errors() > 0 {
+        errors!().print();
+        return Err(());
+    }
+    if args.lex {
+        return Ok(());
+    }
+
+    let parsed = parse_program(&mut lexed);
+
+    dbg!(parsed);
+
+    if len_errors() > 0 {
+        errors!().print();
+        return Err(());
+    }
+    if args.parse {
+        return Ok(());
+    }
+
+    Ok(())
 }
