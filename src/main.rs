@@ -3,12 +3,14 @@
 
 mod error;
 mod lexer;
-mod parser;
+mod parser_c;
+mod parser_asm;
 
 use clap::Parser;
 use error::{len_errors, ERRORS};
 use lexer::lex;
-use parser::parse_program;
+use parser_asm::parse_ast;
+use parser_c::parse_program;
 use std::{fs, path::PathBuf};
 
 #[derive(Parser, Debug)]
@@ -59,13 +61,23 @@ fn main() -> Result<(), ()> {
 
     let parsed = parse_program(&mut lexed);
 
-    dbg!(parsed);
-
     if len_errors() > 0 {
         errors!().print();
         return Err(());
     }
     if args.parse {
+        return Ok(());
+    }
+
+    let asm = parse_ast(&mut parsed.expect("couldn't get ast for some reason"));
+
+    dbg!(asm);
+
+    if len_errors() > 0 {
+        errors!().print();
+        return Err(());
+    }
+    if args.codegen {
         return Ok(());
     }
 
