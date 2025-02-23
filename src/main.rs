@@ -1,6 +1,3 @@
-// TODO: remove this once things are starting to become more in place
-#![allow(dead_code)]
-
 mod emit;
 mod error;
 mod lexer;
