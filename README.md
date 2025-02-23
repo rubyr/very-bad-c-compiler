@@ -19,6 +19,16 @@ very-bad-c-compiler --codegen <file> # stops after the codegen phase
 very-bad-c-compiler -S <file> # outputs an assembly file (.s) rather than an executable
 ```
 
+## requirements
+
+this compiler requires you to have gcc installed on your system. linking is a
+special hell that this developer does not wish to dive into, so it merely emits
+raw assembly files (.s) that it kindly asks gcc to piece together for it. yes i
+see the irony in requiring a c compiler in order to run a c compiler, no i dont
+care
+
+it also requires cargo because it's rust, go figure
+
 ## structure
 
 ```mermaid
