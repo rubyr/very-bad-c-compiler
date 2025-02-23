@@ -5,7 +5,7 @@ use crate::{
     parser_asm::{ASMFunction, ASMProgram, Instruction, Operand, Register},
 };
 
-const LINUX_MUMBO_JUMBO: &'static str = ".section .note.GNU-stack,\"\",@progbits";
+const LINUX_MUMBO_JUMBO: &str = ".section .note.GNU-stack,\"\",@progbits";
 
 pub fn emit_code(ast: Vec<ASMProgram>) -> String {
     let mut out = String::new();

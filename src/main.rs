@@ -14,7 +14,6 @@ use lexer::lex;
 use parser_asm::parse_ast;
 use parser_c::parse_program;
 use std::{
-    error::Error,
     fs::{self, File},
     io::Write,
     path::PathBuf,
@@ -98,12 +97,14 @@ fn main() -> Result<(), ()> {
         p
     };
 
-    let mut file = File::create(&out_asm_path).expect(&format!(
-        "couldn't open output file at {}",
-        out_asm_path.to_str().unwrap()
-    ));
+    let mut file = File::create(&out_asm_path).unwrap_or_else(|_| {
+        panic!(
+            "couldn't open output file at {}",
+            out_asm_path.to_str().unwrap()
+        )
+    });
 
-    write!(file, "{}", emit_code(asm.unwrap()));
+    write!(file, "{}", emit_code(asm.unwrap())).expect("failed to write output!");
 
     if args.asm_only {
         return Ok(());
@@ -119,7 +120,7 @@ fn main() -> Result<(), ()> {
         .output()
         .expect("couldn't link output assembly");
 
-    fs::remove_file(out_asm_path);
+    fs::remove_file(out_asm_path).expect("failed to remove assembly");
 
     Ok(())
 }

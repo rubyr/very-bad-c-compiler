@@ -103,7 +103,7 @@ fn inspect(tokens: &Tokens) -> Option<&Token> {
 
 fn expect(expected: TokenType, tokens: &mut Tokens) -> Option<Token> {
     let actual = tokens.pop_front();
-    if actual == None {
+    if actual.is_none() {
         errors!().push(Box::new(CParserError {
             line: 0,
             index: 0,
@@ -125,7 +125,7 @@ fn expect(expected: TokenType, tokens: &mut Tokens) -> Option<Token> {
 
 fn expect_type(tokens: &mut Tokens) -> Option<Token> {
     let actual = tokens.pop_front();
-    if actual == None {
+    if actual.is_none() {
         errors!().push(Box::new(CParserError {
             line: 0,
             index: 0,
