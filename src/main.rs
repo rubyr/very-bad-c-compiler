@@ -1,17 +1,25 @@
 // TODO: remove this once things are starting to become more in place
 #![allow(dead_code)]
 
+mod emit;
 mod error;
 mod lexer;
-mod parser_c;
 mod parser_asm;
+mod parser_c;
 
 use clap::Parser;
+use emit::emit_code;
 use error::{len_errors, ERRORS};
 use lexer::lex;
 use parser_asm::parse_ast;
 use parser_c::parse_program;
-use std::{fs, path::PathBuf};
+use std::{
+    error::Error,
+    fs::{self, File},
+    io::Write,
+    path::PathBuf,
+    process::Command,
+};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -71,8 +79,6 @@ fn main() -> Result<(), ()> {
 
     let asm = parse_ast(&mut parsed.expect("couldn't get ast for some reason"));
 
-    dbg!(asm);
-
     if len_errors() > 0 {
         errors!().print();
         return Err(());
@@ -80,6 +86,40 @@ fn main() -> Result<(), ()> {
     if args.codegen {
         return Ok(());
     }
+
+    let out_asm_path = {
+        let mut p = file_path.clone();
+        p.set_extension("s");
+        p
+    };
+    let out_exec_path = {
+        let mut p = file_path.clone();
+        p.set_extension("");
+        p
+    };
+
+    let mut file = File::create(&out_asm_path).expect(&format!(
+        "couldn't open output file at {}",
+        out_asm_path.to_str().unwrap()
+    ));
+
+    write!(file, "{}", emit_code(asm.unwrap()));
+
+    if args.asm_only {
+        return Ok(());
+    }
+    // use gcc to assemble and link the output assembly file because the book
+    // doesn't cover doing that
+    Command::new("gcc")
+        .args([
+            out_asm_path.to_str().unwrap(),
+            "-o",
+            out_exec_path.to_str().unwrap(),
+        ])
+        .output()
+        .expect("couldn't link output assembly");
+
+    fs::remove_file(out_asm_path);
 
     Ok(())
 }

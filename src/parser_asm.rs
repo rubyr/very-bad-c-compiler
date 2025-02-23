@@ -11,8 +11,8 @@ pub enum ASMProgram {
 
 #[derive(Debug, Clone)]
 pub struct ASMFunction {
-    ident: Token,
-    statement: Vec<Instruction>,
+    pub ident: Token,
+    pub statements: Vec<Instruction>,
 }
 
 #[derive(Debug, Clone)]
@@ -70,7 +70,7 @@ fn parse_fn(func: CProgram) -> Option<ASMFunction> {
         }
         return Some(ASMFunction {
             ident,
-            statement: body.concat(),
+            statements: body.concat(),
         });
     }
     None
